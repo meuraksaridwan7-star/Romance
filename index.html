@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MY Love - Romantic Moments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Great+Vibes&family=Noto+Sans+JP:wght@300;400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <style>
+        :root {
+            --bg-deep: #0d0a0b;
+            --bg-card: rgba(26, 18, 20, 0.85);
+            --fg: #f5e6e8;
+            --fg-muted: #c4a8ae;
+            --accent: #c9a86c;
+            --accent-rose: #a8575a;
+            --border: rgba(201, 168, 108, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: var(--bg-deep);
+            color: var(--fg);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .font-script {
+            font-family: 'Great Vibes', cursive;
+        }
+        
+        .font-mono {
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .text-accent {
+            color: var(--accent);
+        }
+        
+        .btn-gold {
+            background: linear-gradient(135deg, var(--accent) 0%, #8b6914 100%);
+            color: var(--bg-deep);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(201, 168, 108, 0.3);
+        }
+        
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(201, 168, 108, 0.4);
+        }
+        
+        .poetry-line {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(201, 168, 108, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(201, 168, 108, 0.5); }
+        }
+        
+        .floating { animation: float 6s ease-in-out infinite; }
+        .pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px;
+            background: rgba(201, 168, 108, 0.3);
+            border-radius: 2px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin-top: -6px;
+            cursor: pointer;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.5;
+        }
+        
+        .section-divider {
+            position: relative;
+            text-align: center;
+            margin: 3rem 0;
+        }
+        
+        .section-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+        
+        .section-divider span {
+            background: var(--bg-deep);
+            padding: 0 1rem;
+            position: relative;
+            color: var(--accent);
+        }
+        
+        .poem-stanza {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .poem-stanza::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--accent), transparent);
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .poetry-line, .floating { animation: none; opacity: 1; transform: none; }
+        }
+        
+        .translate-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .translate-btn:hover, .translate-btn.active {
+            background: var(--accent);
+            color: var(--bg-deep);
+        }
+
+        .fade-transition { transition: opacity 0.5s ease; }
+
+        .datetime-display {
+            background: linear-gradient(135deg, rgba(201, 168, 108, 0.1), rgba(168, 87, 90, 0.1));
+            border: 1px solid rgba(201, 168, 108, 0.2);
+        }
+
+        .time-digit {
+            display: inline-block;
+            min-width: 1.2em;
+            text-align: center;
+        }
+
+        .time-colon {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <main class="relative z-10 min-h-screen">
+        
+        <!-- DateTime Header -->
+        <header class="pt-6 pb-2 px-4 text-center">
+            <div class="max-w-2xl mx-auto">
+                <div class="datetime-display rounded-xl p-4 inline-block">
+                    <div class="flex items-center justify-center gap-4 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span id="currentDate" class="font-mono text-lg text-accent tracking-wide"></span>
+                        </div>
+                        <div class="w-px h-6 bg-accent opacity-30 hidden sm:block"></div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span id="currentTimeDisplay" class="font-mono text-lg text-accent tracking-wide"></span>
+                        </div>
+                    </div>
+                    <p id="dayName" class="mt-2 text-sm" style="color: var(--fg-muted);"></p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Title Header -->
+        <section class="pt-4 pb-4 px-4 text-center">
+            <div class="max-w-4xl mx-auto">
+                <!-- JUDUL DIUBAH DI SINI -->
+                <h1 class="font-script text-5xl md:text-7xl text-accent mb-2 floating">
+                    MY Love
+                </h1>
+                <p class="text-lg md:text-xl tracking-widest uppercase" style="color: var(--fg-muted);">
+                    For Your Special Moments
+                </p>
+            </div>
+        </section>
+        
+        <!-- Audio Player Section -->
+        <section class="px-4 py-6">
+            <div class="max-w-2xl mx-auto glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-script text-2xl text-accent">Your Love Song</h3>
+                    <label class="btn-gold px-4 py-2 rounded-full cursor-pointer text-sm">
+                        Upload MP3/MP4
+                        <input type="file" id="audioUpload" accept="audio/*,video/*" class="hidden">
+                    </label>
+                </div>
+                
+                <div id="playerContainer" class="flex flex-col gap-4">
+                    <div class="flex items-center gap-4">
+                        <button id="playBtn" class="w-12 h-12 rounded-full btn-gold flex items-center justify-center" aria-label="Play/Pause">
+                            <svg id="playIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                            </svg>
+                        </button>
+                        
+                        <div class="flex-1">
+                            <div class="flex justify-between text-xs mb-1" style="color: var(--fg-muted);">
+                                <span id="currentTime">0:00</span>
+                                <span id="duration">0:00</span>
+                            </div>
+                            <input type="range" id="progressBar" class="w-full" min="0" max="100" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4" style="color: var(--fg-muted);" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                            </svg>
+                            <input type="range" id="volumeBar" class="w-20" min="0" max="100" value="80">
+                        </div>
+                        
+                        <button id="loopBtn" class="flex items-center gap-2 px-3 py-1 rounded-full border text-sm transition-all" style="border-color: var(--border); color: var(--fg-muted);">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+                            </svg>
+                            <span id="loopText">Loop: Off</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <p id="songName" class="text-center mt-4 text-sm" style="color: var(--fg-muted);">
+                    Upload your favorite love song...
+                </p>
+            </div>
+        </section>
+        
+        <!-- Language Selector -->
+        <section class="px-4 py-4">
+            <div class="max-w-2xl mx-auto flex flex-wrap justify-center gap-2">
+                <span class="text-sm self-center mr-2" style="color: var(--fg-muted);">Translate:</span>
+                <button onclick="translateContent('id')" class="translate-btn px-4 py-1 rounded-full border text-sm active" style="border-color: var(--border);">Indonesia</button>
+                <button onclick="translateContent('en')" class="translate-btn px-4 py-1 rounded-full border text-sm" style="border-color: var(--border);">English</button>
+                <button onclick="translateContent('ja')" class="translate-btn px-4 py-1 rounded-full border text-sm" style="border-color: var(--border);">日本語</button>
+                <button onclick="translateContent('de')" class="translate-btn px-4 py-1 rounded-full border text-sm" style="border-color: var(--border);">Deutsch</button>
+            </div>
+        </section>
+        
+        <!-- Poetry Content -->
+        <section class="px-4 py-8">
+            <div class="max-w-3xl mx-auto">
+                
+                <!-- Opening -->
+                <div class="text-center mb-12">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-full pulse-glow flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent-rose), var(--accent));">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </div>
+                    <h2 class="font-script text-4xl md:text-5xl text-accent mb-4 fade-transition" id="mainTitle">Untukmu yang Tercinta</h2>
+                    <p class="text-lg italic fade-transition" style="color: var(--fg-muted);" id="mainSubtitle">Sebuah Puisi Cinta yang Abadi</p>
+                </div>
+                
+                <!-- Main Poetry -->
+                <div class="glass-card rounded-2xl p-6 md:p-10 mb-8">
+                    <div class="poetry-content space-y-6" id="mainPoetry">
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 0.1s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza1">
+                                Di malam yang sunyi ini, aku menulis namamu di atas daun yang jatuh,<br>
+                                Berharap angin malam membawanya ke pelukanmu yang jauh di sana.<br>
+                                Setiap huruf adalah detak jantungku yang tak pernah berhenti mencintaimu,<br>
+                                Setiap kata adalah doa yang kupanjatkan untuk kebahagiaanmu.
+                            </p>
+                        </div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 0.2s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza2">
+                                Kuingat saat pertama kali mata kita bertemu di keramaian dunia,<br>
+                                Waktu seolah berhenti berdetak, dan hanya kamulah yang tersisa.<br>
+                                Senyummu adalah mentari yang menerangi hari-hari gelapku,<br>
+                                Tawamu adalah melodi yang menghibur jiwa yang resah ini.
+                            </p>
+                        </div>
+                        
+                        <div class="divider my-8"></div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 0.3s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza3">
+                                Tahukah kamu bahwa setiap detik tanpamu serasa seribu tahun?<br>
+                                Bahkan bintang-bintang di langit pun iri pada cinta kita yang bersinar terang.<br>
+                                Aku bersyukur pada Tuhan telah mempertemukan kita di dunia yang luas ini,<br>
+                                Di antara miliaran manusia, kamulah yang ditakdirkan untukku.
+                            </p>
+                        </div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 0.4s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza4">
+                                Aku berjanji akan menjaga cinta ini seperti permata yang tak ternilai,<br>
+                                Akan kubangun istana cinta di hatimu yang penuh kedamaian.<br>
+                                Tak ada badai yang mampu menghancurkan fondasi cinta kita,<br>
+                                Tak ada gelap yang mampu memadamkan api cinta yang menyala.
+                            </p>
+                        </div>
+                        
+                        <div class="section-divider">
+                            <span class="font-script text-2xl" id="dividerPantun">Pantun Cinta</span>
+                        </div>
+                        
+                        <!-- Pantun Sections -->
+                        <div class="bg-black bg-opacity-20 rounded-xl p-6 mb-6">
+                            <h3 class="font-script text-2xl text-accent mb-4 text-center" id="pantunTitle1">Pantun Pertama</h3>
+                            <div class="poetry-line" style="animation-delay: 0.5s;">
+                                <p class="text-lg leading-loose text-center fade-transition" id="pantun1">
+                                    Pergi ke pasar membeli mangga<br>
+                                    Mangganya manis rasanya enak<br>
+                                    Betapa beruntungnya aku memiliki kamu<br>
+                                    Cintamu tulus tak ada yang candu
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-20 rounded-xl p-6 mb-6">
+                            <h3 class="font-script text-2xl text-accent mb-4 text-center" id="pantunTitle2">Pantun Kedua</h3>
+                            <div class="poetry-line" style="animation-delay: 0.6s;">
+                                <p class="text-lg leading-loose text-center fade-transition" id="pantun2">
+                                    Burung merpati terbang ke angkasa<br>
+                                    Hinggap di dahan pohon cemara<br>
+                                    Kaulah segalanya dalam hidupku<br>
+                                    Cintaku padamu takkan pernah sirna
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-20 rounded-xl p-6 mb-6">
+                            <h3 class="font-script text-2xl text-accent mb-4 text-center" id="pantunTitle3">Pantun Ketiga</h3>
+                            <div class="poetry-line" style="animation-delay: 0.7s;">
+                                <p class="text-lg leading-loose text-center fade-transition" id="pantun3">
+                                    Tanam bunga mawar di halaman<br>
+                                    Mekar indah wangi harum baunya<br>
+                                    Kaulah bunga di taman hatiku<br>
+                                    Selamanya kan kujaga cinta kita
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-20 rounded-xl p-6 mb-6">
+                            <h3 class="font-script text-2xl text-accent mb-4 text-center" id="pantunTitle4">Pantun Keempat</h3>
+                            <div class="poetry-line" style="animation-delay: 0.8s;">
+                                <p class="text-lg leading-loose text-center fade-transition" id="pantun4">
+                                    Bulan bersinar terang di malam<br>
+                                    Bintang gemintang menghiasi langit<br>
+                                    Cintaku padamu selalu abadi<br>
+                                    Sepanjang hayat tak akan berakhir
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="divider my-8"></div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 0.9s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza5">
+                                Dengarkanlah sayang, kisah cinta yang akan kusampaikan,<br>
+                                Tentang bagaimana engkau menjadi nafas dalam hidupku.<br>
+                                Setiap pagi ketika matahari menyingsing dari timur,<br>
+                                Bayangmu adalah yang pertama hinggap di pikiranku.
+                            </p>
+                        </div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 1.0s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza6">
+                                Setiap malam ketika bulan memancarkan sinarnya,<br>
+                                Kamulah yang mengisi mimpiku dengan keindahan.<br>
+                                Aku tak bisa membayangkan hidup tanpamu di sisiku,<br>
+                                Karena kamulah warna yang membuat hidupku berarti.
+                            </p>
+                        </div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 1.1s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza7">
+                                Mungkin aku bukan penyair yang bisa merangkai kata indah,<br>
+                                Mungkin aku bukan pelukis yang bisa melukis senyummu,<br>
+                                Tapi cintaku ini tulus murni tanpa kepura-puraan,<br>
+                                Hadiah terindah dari hati yang terus mencintaimu.
+                            </p>
+                        </div>
+                        
+                        <div class="section-divider">
+                            <span class="font-script text-2xl" id="dividerJanji">Janji Cinta</span>
+                        </div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 1.2s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza8">
+                                Aku berjanji untuk mencintaimu dalam suka maupun duka,<br>
+                                Menemanimu melewati badai kehidupan yang menghadang.<br>
+                                Aku akan menjadi payung ketika hujan turun membasahi,<br>
+                                Menjadi tempat berteduh ketika matahari terik menyengat.
+                            </p>
+                        </div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 1.3s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza9">
+                                Ketika rambutmu telah beruban oleh waktu,<br>
+                                Ketika kulitmu mulai keriput tanda usia,<br>
+                                Aku tetap akan memandangmu dengan cinta yang sama,<br>
+                                Karena cintaku bukan pada rupa, tapi pada jiwamu.
+                            </p>
+                        </div>
+                        
+                        <div class="poem-stanza poetry-line" style="animation-delay: 1.4s;">
+                            <p class="text-lg md:text-xl leading-relaxed fade-transition" id="stanza10">
+                                Biarkan aku menemani langkahmu hingga akhir hayat,<br>
+                                Berjalan bersama menyusuri jalan kehidupan ini.<br>
+                                Dan kelak ketika ajal menjemput kita berdua,<br>
+                                Kita akan bersatu kembali di surga yang kekal abadi.
+                            </p>
+                        </div>
+                        
+                        <div class="section-divider">
+                            <span class="font-script text-2xl" id="dividerKasih">Pantun Kasih</span>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-20 rounded-xl p-6 mb-6">
+                            <h3 class="font-script text-2xl text-accent mb-4 text-center" id="pantunTitle5">Pantun Kelima</h3>
+                            <div class="poetry-line" style="animation-delay: 1.5s;">
+                                <p class="text-lg leading-loose text-center fade-transition" id="pantun5">
+                                    Sungai mengalir menuju samudra<br>
+                                    Ikan berenang riang gembira<br>
+                                    Kaulah satu-satunya dalam hatiku<br>
+                                    Takkan ada yang bisa menggantikanmu
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-20 rounded-xl p-6 mb-6">
+                            <h3 class="font-script text-2xl text-accent mb-4 text-center" id="pantunTitle6">Pantun Keenam</h3>
+                            <div class="poetry-line" style="animation-delay: 1.6s;">
+                                <p class="text-lg leading-loose text-center fade-transition" id="pantun6">
+                                    Bunga melati putih berseri<br>
+                                    Wanginya harum memikat hati<br>
+                                    Cinta kita abadi selamanya<br>
+                                    Seperti bintang di angkasa raya
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-20 rounded-xl p-6 mb-6">
+                            <h3 class="font-script text-2xl text-accent mb-4 text-center" id="pantunTitle7">Pantun Ketujuh</h3>
+                            <div class="poetry-line" style="animation-delay: 1.7s;">
+                                <p class="text-lg leading-loose text-center fade-transition" id="pantun7">
+                                    Pagi buta ayam berkokok<br>
+                                    Matahari terbit di ufuk timur<br>
+                                    Cintaku padamu tak terhingga<br>
+                                    Seluas samudra setinggi langit
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-20 rounded-xl p-6">
+                            <h3 class="font-script text-2xl text-accent mb-4 text-center" id="pantunTitle8">Pantun Terakhir</h3>
+                            <div class="poetry-line" style="animation-delay: 1.8s;">
+                                <p class="text-lg leading-loose text-center fade-transition" id="pantun8">
+                                    Gunung tinggi menjulang angkasa<br>
+                                    Kabut tipis menyelimuti puncak<br>
+                                    Kaulah belahan jiwa yang kucari<br>
+                                    Teman hidup hingga akhir zaman
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="divider my-8"></div>
+                        
+                        <!-- Closing -->
+                        <div class="text-center poetry-line" style="animation-delay: 1.9s;">
+                            <p class="text-xl md:text-2xl leading-relaxed mb-6 fade-transition" id="closing1">
+                                Jadi dengarkanlah sayang, puisi cinta dari hatiku yang paling dalam,<br>
+                                Sebuah pernyataan cinta yang takkan pernah pudar oleh waktu.<br>
+                                Aku mencintaimu sepenuh hati, dengan segenap jiwa dan raga,<br>
+                                Sampai akhir waktu, sampai selamanya... aku adalah milikmu.
+                            </p>
+                            
+                            <div class="font-script text-3xl text-accent mt-8 fade-transition" id="closing2">
+                                Selamanya Milikmu,<br>
+                                Dengan segenap cinta yang ada...
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+                <!-- Occasion Selector -->
+                <div class="glass-card rounded-2xl p-6 mb-8">
+                    <h3 class="font-script text-2xl text-accent mb-4 text-center" id="selectOccasion">Pilih Momen Spesial</h3>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button onclick="changeOccasion('valentine')" class="occasion-btn px-6 py-2 rounded-full border transition-all" style="border-color: var(--border);">
+                            Valentine Day
+                        </button>
+                        <button onclick="changeOccasion('wedding')" class="occasion-btn px-6 py-2 rounded-full border transition-all" style="border-color: var(--border);">
+                            Wedding Anniversary
+                        </button>
+                        <button onclick="changeOccasion('birthday')" class="occasion-btn px-6 py-2 rounded-full border transition-all" style="border-color: var(--border);">
+                            Birthday
+                        </button>
+                    </div>
+                    <p id="occasionText" class="text-center mt-4 fade-transition" style="color: var(--fg-muted);">
+                        Selamat Hari Valentine, cintaku...
+                    </p>
+                </div>
+                
+                <!-- Footer -->
+                <footer class="text-center py-8">
+                    <p class="font-script text-2xl text-accent mb-2">Made with Love</p>
+                    <p class="text-sm" style="color: var(--fg-muted);">For all the beautiful moments in life</p>
+                </footer>
+                
+            </div>
+        </section>
+    </main>
+    
+    <audio id="audioPlayer" loop preload="auto"></audio>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        
+        // ========== TRANSLATIONS DATA ==========
+        const translations = {
+            id: {
+                dayNames: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"],
+                monthNames: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
+                mainTitle: "Untukmu yang Tercinta",
+                mainSubtitle: "Sebuah Puisi Cinta yang Abadi",
+                stanza1: "Di malam yang sunyi ini, aku menulis namamu di atas daun yang jatuh,<br>Berharap angin malam membawanya ke pelukanmu yang jauh di sana.<br>Setiap huruf adalah detak jantungku yang tak pernah berhenti mencintaimu,<br>Setiap kata adalah doa yang kupanjatkan untuk kebahagiaanmu.",
+                stanza2: "Kuingat saat pertama kali mata kita bertemu di keramaian dunia,<br>Waktu seolah berhenti berdetak, dan hanya kamulah yang tersisa.<br>Senyummu adalah mentari yang menerangi hari-hari gelapku,<br>Tawamu adalah melodi yang menghibur jiwa yang resah ini.",
+                stanza3: "Tahukah kamu bahwa setiap detik tanpamu serasa seribu tahun?<br>Bahkan bintang-bintang di langit pun iri pada cinta kita yang bersinar terang.<br>Aku bersyukur pada Tuhan telah mempertemukan kita di dunia yang luas ini,<br>Di antara miliaran manusia, kamulah yang ditakdirkan untukmu.",
+                stanza4: "Aku berjanji akan menjaga cinta ini seperti permata yang tak ternilai,<br>Akan kubangun istana cinta di hatimu yang penuh kedamaian.<br>Tak ada badai yang mampu menghancurkan fondasi cinta kita,<br>Tak ada gelap yang mampu memadamkan api cinta yang menyala.",
+                stanza5: "Dengarkanlah sayang, kisah cinta yang akan kusampaikan,<br>Tentang bagaimana engkau menjadi nafas dalam hidupku.<br>Setiap pagi ketika matahari menyingsing dari timur,<br>Bayangmu adalah yang pertama hinggap di pikiranku.",
+                stanza6: "Setiap malam ketika bulan memancarkan sinarnya,<br>Kamulah yang mengisi mimpiku dengan keindahan.<br>Aku tak bisa membayangkan hidup tanpamu di sisiku,<br>Karena kamulah warna yang membuat hidupku berarti.",
+                stanza7: "Mungkin aku bukan penyair yang bisa merangkai kata indah,<br>Mungkin aku bukan pelukis yang bisa melukis senyummu,<br>Tapi cintaku ini tulus murni tanpa kepura-puraan,<br>Hadiah terindah dari hati yang terus mencintaimu.",
+                stanza8: "Aku berjanji untuk mencintaimu dalam suka maupun duka,<br>Menemanimu melewati badai kehidupan yang menghadang.<br>Aku akan menjadi payung ketika hujan turun membasahi,<br>Menjadi tempat berteduh ketika matahari terik menyengat.",
+                stanza9: "Ketika rambutmu telah beruban oleh waktu,<br>Ketika kulitmu mulai keriput tanda usia,<br>Aku tetap akan memandangmu dengan cinta yang sama,<br>Karena cintaku bukan pada rupa, tapi pada jiwamu.",
+                stanza10: "Biarkan aku menemani langkahmu hingga akhir hayat,<br>Berjalan bersama menyusuri jalan kehidupan ini.<br>Dan kelak ketika ajal menjemput kita berdua,<br>Kita akan bersatu kembali di surga yang kekal abadi.",
+                pantun1: "Pergi ke pasar membeli mangga<br>Mangganya manis rasanya enak<br>Betapa beruntungnya aku memiliki kamu<br>Cintamu tulus tak ada yang candu",
+                pantun2: "Burung merpati terbang ke angkasa<br>Hinggap di dahan pohon cemara<br>Kaulah segalanya dalam hidupku<br>Cintaku padamu takkan pernah sirna",
+                pantun3: "Tanam bunga mawar di halaman<br>Mekar indah wangi harum baunya<br>Kaulah bunga di taman hatiku<br>Selamanya kan kujaga cinta kita",
+                pantun4: "Bulan bersinar terang di malam<br>Bintang gemintang menghiasi langit<br>Cintaku padamu selalu abadi<br>Sepanjang hayat tak akan berakhir",
+                pantun5: "Sungai mengalir menuju samudra<br>Ikan berenang riang gembira<br>Kaulah satu-satunya dalam hatiku<br>Takkan ada yang bisa menggantikanmu",
+                pantun6: "Bunga melati putih berseri<br>Wanginya harum memikat hati<br>Cinta kita abadi selamanya<br>Seperti bintang di angkasa raya",
+                pantun7: "Pagi buta ayam berkokok<br>Matahari terbit di ufuk timur<br>Cintaku padamu tak terhingga<br>Seluas samudra setinggi langit",
+                pantun8: "Gunung tinggi menjulang angkasa<br>Kabut tipis menyelimuti puncak<br>Kaulah belahan jiwa yang kucari<br>Teman hidup hingga akhir zaman",
+                closing1: "Jadi dengarkanlah sayang, puisi cinta dari hatiku yang paling dalam,<br>Sebuah pernyataan cinta yang takkan pernah pudar oleh waktu.<br>Aku mencintaimu sepenuh hati, dengan segenap jiwa dan raga,<br>Sampai akhir waktu, sampai selamanya... aku adalah milikmu.",
+                closing2: "Selamanya Milikmu,<br>Dengan segenap cinta yang ada...",
+                dividerPantun: "Pantun Cinta", dividerJanji: "Janji Cinta", dividerKasih: "Pantun Kasih",
+                pantunTitle1: "Pantun Pertama", pantunTitle2: "Pantun Kedua", pantunTitle3: "Pantun Ketiga", pantunTitle4: "Pantun Keempat",
+                pantunTitle5: "Pantun Kelima", pantunTitle6: "Pantun Keenam", pantunTitle7: "Pantun Ketujuh", pantunTitle8: "Pantun Terakhir",
+                selectOccasion: "Pilih Momen Spesial",
+                occasionValentine: "Selamat Hari Valentine, cintaku... Terima kasih telah menjadi bagian terindah dalam hidupku.",
+                occasionWedding: "Selamat Hari Ulang Tahun Pernikahan kita... Setiap tahun bersamamu adalah anugerah terindah.",
+                occasionBirthday: "Selamat Ulang Tahun, sayang... Semoga panjang umur dan sehat selalu, cintaku untukmu abadi."
+            },
+            en: {
+                dayNames: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                mainTitle: "For You, My Beloved",
+                mainSubtitle: "An Eternal Love Poem",
+                stanza1: "On this silent night, I write your name upon a falling leaf,<br>Hoping the night wind carries it to your embrace far away.<br>Every letter is a heartbeat that never ceases loving you,<br>Every word is a prayer I offer for your happiness.",
+                stanza2: "I remember when our eyes first met in the crowd of the world,<br>Time seemed to stop its ticking, and only you remained.<br>Your smile is the sun that illuminates my darkest days,<br>Your laughter is the melody that soothes this restless soul.",
+                stanza3: "Do you know that every second without you feels like a thousand years?<br>Even the stars in the sky are envious of our shining love.<br>I thank God for bringing us together in this vast world,<br>Among billions of people, you are the one destined for me.",
+                stanza4: "I promise to guard this love like a priceless gem,<br>I will build a castle of love in your heart filled with peace.<br>No storm can destroy the foundation of our love,<br>No darkness can extinguish the flame of love that burns.",
+                stanza5: "Listen my dear, the love story I am about to tell,<br>About how you became the very breath of my life.<br>Every morning when the sun rises from the east,<br>Your image is the first to land in my thoughts.",
+                stanza6: "Every night when the moon casts its light,<br>You are the one who fills my dreams with beauty.<br>I cannot imagine life without you by my side,<br>Because you are the color that makes my life meaningful.",
+                stanza7: "Perhaps I am not a poet who can weave beautiful words,<br>Perhaps I am not a painter who can capture your smile,<br>But my love is pure and sincere without pretense,<br>The most beautiful gift from a heart that continues to love you.",
+                stanza8: "I promise to love you in joy and in sorrow,<br>To accompany you through the storms of life that approach.<br>I will be an umbrella when the rain falls,<br>A shelter when the scorching sun burns.",
+                stanza9: "When your hair has turned gray with time,<br>When your skin begins to wrinkle with age,<br>I will still gaze upon you with the same love,<br>Because my love is not for your appearance, but for your soul.",
+                stanza10: "Let me accompany your steps until the end of life,<br>Walking together along the journey of this life.<br>And when death comes to fetch us both,<br>We will be reunited in eternal paradise.",
+                pantun1: "Go to the market to buy mangoes<br>The mango is sweet and delicious<br>How lucky I am to have you<br>Your love is pure without deceit",
+                pantun2: "A white dove flies to the sky<br>Perching on a pine tree branch<br>You are everything in my life<br>My love for you will never fade",
+                pantun3: "Plant a rose in the garden<br>Blooming beautifully, fragrant scent<br>You are the flower in my heart's garden<br>Forever I will guard our love",
+                pantun4: "The moon shines bright at night<br>Stars adorn the sky<br>My love for you is always eternal<br>Throughout life it will never end",
+                pantun5: "The river flows to the ocean<br>Fish swim joyfully<br>You are the only one in my heart<br>Nothing can ever replace you",
+                pantun6: "Jasmine flowers white and bright<br>Their fragrance captivates the heart<br>Our love is eternally forever<br>Like stars in the galaxy",
+                pantun7: "Early morning rooster crows<br>Sun rises in the east horizon<br>My love for you is immeasurable<br>As vast as the ocean, as high as the sky",
+                pantun8: "High mountains tower to the sky<br>Thin mist covers the peak<br>You are the soulmate I've been seeking<br>Life companion until the end of time",
+                closing1: "So listen my dear, a love poem from the depths of my heart,<br>A declaration of love that will never fade with time.<br>I love you with all my heart, with all my soul and being,<br>Until the end of time, forever... I am yours.",
+                closing2: "Forever Yours,<br>With all the love that exists...",
+                dividerPantun: "Love Poems", dividerJanji: "Promise of Love", dividerKasih: "Poems of Affection",
+                pantunTitle1: "First Poem", pantunTitle2: "Second Poem", pantunTitle3: "Third Poem", pantunTitle4: "Fourth Poem",
+                pantunTitle5: "Fifth Poem", pantunTitle6: "Sixth Poem", pantunTitle7: "Seventh Poem", pantunTitle8: "Final Poem",
+                selectOccasion: "Choose Special Moment",
+                occasionValentine: "Happy Valentine's Day, my love... Thank you for being the most beautiful part of my life.",
+                occasionWedding: "Happy Wedding Anniversary to us... Every year with you is the most precious gift.",
+                occasionBirthday: "Happy Birthday, my dear... May you have a long life and always be healthy, my love for you is eternal."
+            },
+            ja: {
+                dayNames: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+                monthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+                mainTitle: "愛するあなたへ",
+                mainSubtitle: "永遠の愛の詩",
+                stanza1: "静かな夜に、落ち葉にあなたの名前を書きます、<br>夜風が遠くのあなたの腕に運んでくれることを願って。<br>一文字一文字が、あなたを愛し続ける鼓動、<br>一言一言が、あなたの幸せを願う祈りです。",
+                stanza2: "世界の喧騒の中で、私たちの目が初めて出会った時を覚えている、<br>時が止まったようで、あなただけが残った。<br>あなたの笑顔は、私の暗い日々を照らす太陽、<br>あなたの笑い声は、この落ち着かない魂を癒すメロディー。",
+                stanza3: "あなたのいない一秒が千年のように感じることを知っていますか？<br>空の星さえ、私たちの輝く愛を羨ましがっています。<br>この広い世界で私たちを出会わせてくれた神に感謝します、<br>数十億の人々の中で、あなたは私に運命づけられた人です。",
+                stanza4: "この愛を、計り知れない宝石のように守ることを誓います、<br>平和に満ちたあなたの心に愛の城を建てましょう。<br>嵐が私たちの愛の土台を壊すことはできません、<br>闇が燃える愛の炎を消すことはできません。",
+                stanza5: "聞いてください、私が語ろうとする愛の物語を、<br>あなたが私の人生の息吹となった経緯について。<br>太陽が東から昇る毎朝、<br>あなたの姿が最初に私の心に浮かびます。",
+                stanza6: "月が光を放つ毎夜、<br>あなたは私の夢を美しさで満たしてくれます。<br>そばにいない人生は想像できません、<br>あなたは私の人生を意味あるものにしてくれる色だから。",
+                stanza7: "私は美しい言葉を紡ぐ詩人ではないかもしれません、<br>あなたの笑顔を描く画家ではないかもしれません、<br>しかし私の愛は純粋で誠実、見せかけなし、<br>あなたを愛し続ける心からの最も美しい贈り物です。",
+                stanza8: "喜びも悲しみも、あなたを愛することを誓います、<br>人生の嵐を一緒に乗り越えていきます。<br>雨が降るときは傘になり、<br>灼熱の太陽が照らすときは日陰になります。",
+                stanza9: "時間とともにあなたの髪が白くなっても、<br>年齢とともに肌にしわができても、<br>私は同じ愛であなたを見つめ続けます、<br>私の愛は外見ではなく、あなたの魂にあるからです。",
+                stanza10: "人生の終わりまであなたと歩んでいきます、<br>この人生の旅路を一緒に歩んでいきましょう。<br>やがて死が私たち二人を迎えに来るとき、<br>私たちは永遠の楽園で再会するでしょう。",
+                pantun1: "市場へ行ってマンゴーを買う<br>マンゴーは甘くて美味しい<br>あなたがいてくれてなんて幸せ<br>あなたの愛は純粋で偽りなし",
+                pantun2: "白い鳩が空へ飛ぶ<br>松の木の枝に止まる<br>あなたは私の人生のすべて<br>あなたへの愛は永遠に消えない",
+                pantun3: "庭にバラを植える<br>美しく咲き、香りがいい<br>あなたは心の庭の花<br>永遠に私たちの愛を守る",
+                pantun4: "夜に月が明るく輝く<br>星が空を飾る<br>あなたへの愛は永遠<br>一生終わることはない",
+                pantun5: "川は海へ流れる<br>魚は楽しげに泳ぐ<br>心にはあなただけ<br>何もあなたを置き換えられない",
+                pantun6: "ジャスミンの花は白く輝く<br>その香りは心を捉える<br>私たちの愛は永遠に<br>天の星のように",
+                pantun7: "早朝、鶏が鳴く<br>太陽は東の地平線から昇る<br>あなたへの愛は計り知れない<br>海のように広く、空のように高く",
+                pantun8: "高い山は空へそびえる<br>薄い霧が頂を覆う<br>あなたは探していた魂のパートナー<br>時代の終わりまでの人生の伴侶",
+                closing1: "だから聞いて、心の底からの愛の詩、<br>時間とともに決して色褪せない愛の告白。<br>心を込めてあなたを愛しています、魂と体を込めて、<br>時が終わるまで、永遠に...私はあなたのものです。",
+                closing2: "永遠にあなたのもの、<br>存在するすべての愛を込めて...",
+                dividerPantun: "愛の詩", dividerJanji: "愛の誓い", dividerKasih: "愛情の詩",
+                pantunTitle1: "最初の詩", pantunTitle2: "二番目の詩", pantunTitle3: "三番目の詩", pantunTitle4: "四番目の詩",
+                pantunTitle5: "五番目の詩", pantunTitle6: "六番目の詩", pantunTitle7: "七番目の詩", pantunTitle8: "最後の詩",
+                selectOccasion: "特別な瞬間を選ぶ",
+                occasionValentine: "ハッピーバレンタイン、私の愛... 私の人生で最も美しい部分でいてくれてありがとう。",
+                occasionWedding: "結婚記念日おめでとう... あなたと過ごす毎年が最も貴重な贈り物です。",
+                occasionBirthday: "お誕生日おめでとう... 長生きしていつも健康でありますように、私の愛は永遠です。"
+            },
+            de: {
+                dayNames: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+                monthNames: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+                mainTitle: "Für Dich, Mein Geliebter",
+                mainSubtitle: "Ein Ewiges Liebesgedicht",
+                stanza1: "In dieser stillen Nacht schreibe ich deinen Namen auf ein fallendes Blatt,<br>Hoffend, der Nachtwind trägt es in deine Umarmung in der Ferne.<br>Jeder Buchstabe ist ein Herzschlag, der nie aufhört, dich zu lieben,<br>Jedes Wort ist ein Gebet, das ich für dein Glück darbringe.",
+                stanza2: "Ich erinnere mich, als sich unsere Augen in der Menschenmenge trafen,<br>Die Zeit schien stillzustehen, und nur du bliebst übrig.<br>Dein Lächeln ist die Sonne, die meine dunkelsten Tage erhellt,<br>Dein Lachen ist die Melodie, die diese unruhige Seele beruhigt.",
+                stanza3: "Weißt du, dass jede Sekunde ohne dich sich wie tausend Jahre anfühlt?<br>Sogar die Sterne am Himmel beneiden unsere strahlende Liebe.<br>Ich danke Gott, dass er uns in dieser weiten Welt zusammengeführt hat,<br>Unter Milliarden von Menschen bist du derjenige, der für mich bestimmt ist.",
+                stanza4: "Ich verspreche, diese Liebe wie ein unbezahlbares Juwel zu hüten,<br>Ich werde eine Burg der Liebe in deinem Herzen bauen, voller Frieden.<br>Kein Sturm kann das Fundament unserer Liebe zerstören,<br>Keine Dunkelheit kann die Flamme der Liebe löschen, die brennt.",
+                stanza5: "Hör zu, mein Liebling, die Liebesgeschichte, die ich erzählen werde,<br>Wie du zum Atem meines Lebens wurdest.<br>Jeden Morgen, wenn die Sonne im Osten aufgeht,<br>Ist dein Bild das erste, das in meinen Gedanken landet.",
+                stanza6: "Jede Nacht, wenn der Mond sein Licht wirft,<br>Bist du es, der meine Träume mit Schönheit füllt.<br>Ich kann mir ein Leben ohne dich an meiner Seite nicht vorstellen,<br>Denn du bist die Farbe, die mein Leben bedeutungsvoll macht.",
+                stanza7: "Vielleicht bin ich kein Dichter, der schöne Worte weben kann,<br>Vielleicht bin ich kein Maler, der dein Lächeln einfangen kann,<br>Aber meine Liebe ist rein und aufrichtig ohne Verstellung,<br>Das schönste Geschenk aus einem Herz, das dich weiterhin liebt.",
+                stanza8: "Ich verspreche, dich in Freud und Leid zu lieben,<br>Dich durch die Stürme des Lebens zu begleiten.<br>Ich werde ein Regenschirm sein, wenn der Regen fällt,<br>Ein Schutzort, wenn die brennende Sonne sticht.",
+                stanza9: "Wenn deine Haare mit der Zeit grau geworden sind,<br>Wenn deine Haut mit dem Alter zu runzeln beginnt,<br>Werde ich dich immer noch mit derselben Liebe ansehen,<br>Denn meine Liebe gilt nicht deinem Aussehen, sondern deiner Seele.",
+                stanza10: "Lass mich dich bis ans Ende des Lebens begleiten,<br>Gemeinsam den Weg dieses Lebens gehen.<br>Und wenn der Tod uns beide holt,<br>Werden wir uns im ewigen Paradies wieder vereinen.",
+                pantun1: "Geh zum Markt um Mangos zu kaufen<br>Die Mango ist süß und lecker<br>Wie glücklich ich bin, dich zu haben<br>Deine Liebe ist rein ohne Täuschung",
+                pantun2: "Eine weiße Taube fliegt in den Himmel<br>Landet auf einem Kiefernzweig<br>Du bist alles in meinem Leben<br>Meine Liebe zu dir wird niemals verblassen",
+                pantun3: "Pflanze eine Rose im Garten<br>Sie blüht schön, duftender Geruch<br>Du bist die Blume im Garten meines Herzens<br>Für immer werde ich unsere Liebe bewahren",
+                pantun4: "Der Mond scheint hell in der Nacht<br>Sterne schmücken den Himmel<br>Meine Liebe zu dir ist ewig<br>Das ganze Leben wird sie niemals enden",
+                pantun5: "Der Fluss fließt zum Ozean<br>Fische schwimmen fröhlich<br>Du bist der Einzige in meinem Herzen<br>Nichts kann dich jemals ersetzen",
+                pantun6: "Jasminblumen weiß und strahlend<br>Ihr Duft fesselt das Herz<br>Unsere Liebe ist ewig für immer<br>Wie Sterne in der Galaxie",
+                pantun7: "Früh morgens kräht der Hahn<br>Die Sonne geht im Osten auf<br>Meine Liebe zu dir ist unermesslich<br>So weit wie der Ozean, so hoch wie der Himmel",
+                pantun8: "Hohe Berge ragen in den Himmel<br>Dünner Nebel bedeckt den Gipfel<br>Du bist der Seelenverwandte, den ich gesucht habe<br>Lebensgefährte bis ans Ende der Zeit",
+                closing1: "Also hör zu, mein Liebling, ein Liebesgedicht aus der Tiefe meines Herzens,<br>Eine Liebeserklärung, die mit der Zeit niemals verblassen wird.<br>Ich liebe dich mit ganzem Herzen, mit ganzer Seele und ganzem Sein,<br>Bis ans Ende der Zeit, für immer... ich gehöre dir.",
+                closing2: "Für immer Dein,<br>Mit aller Liebe, die existiert...",
+                dividerPantun: "Liebesgedichte", dividerJanji: "Versprechen der Liebe", dividerKasih: "Gedichte der Zuneigung",
+                pantunTitle1: "Erstes Gedicht", pantunTitle2: "Zweites Gedicht", pantunTitle3: "Drittes Gedicht", pantunTitle4: "Viertes Gedicht",
+                pantunTitle5: "Fünftes Gedicht", pantunTitle6: "Sechstes Gedicht", pantunTitle7: "Siebtes Gedicht", pantunTitle8: "Letztes Gedicht",
+                selectOccasion: "Besonderen Moment wählen",
+                occasionValentine: "Alles Liebe zum Valentinstag, meine Liebe... Danke, dass du der schönste Teil meines Lebens bist.",
+                occasionWedding: "Alles Gute zum Hochzeitstag... Jedes Jahr mit dir ist das kostbarste Geschenk.",
+                occasionBirthday: "Alles Gute zum Geburtstag, mein Liebling... Mögest du ein langes Leben haben und immer gesund sein, meine Liebe zu dir ist ewig."
+            }
+        };
+
+        // Global state for language
+        let currentLang = 'id';
+        
+        // ========== DATE & TIME FUNCTION ==========
+        function updateDateTime() {
+            const now = new Date();
+            const trans = translations[currentLang];
+            
+            // Date
+            const dayName = trans.dayNames[now.getDay()];
+            const date = now.getDate();
+            const monthName = trans.monthNames[now.getMonth()];
+            const year = now.getFullYear();
+            
+            document.getElementById('currentDate').innerHTML = `${dayName}, ${date} ${monthName} ${year}`;
+            
+            // Time with blinking colon
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('currentTimeDisplay').innerHTML = 
+                `<span class="time-digit">${hours}</span><span class="time-colon">:</span><span class="time-digit">${minutes}</span><span class="time-colon">:</span><span class="time-digit">${seconds}</span>`;
+            
+            // Day name below
+            document.getElementById('dayName').textContent = dayName;
+        }
+        
+        // Update time every second
+        setInterval(updateDateTime, 1000);
+        updateDateTime(); // Initial call
+
+        // ========== THREE.JS 3D SCENE ==========
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+        
+        camera.position.z = 50;
+        
+        // Heart Shape
+        const heartShape = new THREE.Shape();
+        heartShape.moveTo(0, 0);
+        heartShape.bezierCurveTo(0, -0.5, -0.5, -1, -1, -1);
+        heartShape.bezierCurveTo(-1.5, -1, -2, -0.5, -2, 0);
+        heartShape.bezierCurveTo(-2, 0.5, -1.5, 1, -1, 1.5);
+        heartShape.bezierCurveTo(-0.5, 2, 0, 2.5, 0, 3);
+        heartShape.bezierCurveTo(0, 2.5, 0.5, 2, 1, 1.5);
+        heartShape.bezierCurveTo(1.5, 1, 2, 0.5, 2, 0);
+        heartShape.bezierCurveTo(2, -0.5, 1.5, -1, 1, -1);
+        heartShape.bezierCurveTo(0.5, -1, 0, -0.5, 0, 0);
+        
+        const extrudeSettings = { depth: 0.3, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1 };
+        const heartGeometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+        heartGeometry.center();
+        heartGeometry.scale(0.8, 0.8, 0.8);
+        
+        const heartColors = [0xc9a86c, 0xa8575a, 0xd4a574, 0xb8860b];
+        const hearts = [];
+        
+        for (let i = 0; i < 25; i++) {
+            const material = new THREE.MeshBasicMaterial({
+                color: heartColors[i % heartColors.length],
+                transparent: true,
+                opacity: 0.6
+            });
+            
+            const heart = new THREE.Mesh(heartGeometry, material);
+            heart.position.set((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 50);
+            heart.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            heart.userData = {
+                rotationSpeed: { x: (Math.random() - 0.5) * 0.02, y: (Math.random() - 0.5) * 0.02, z: (Math.random() - 0.5) * 0.01 },
+                floatSpeed: 0.5 + Math.random() * 0.5,
+                floatOffset: Math.random() * Math.PI * 2
+            };
+            scene.add(heart);
+            hearts.push(heart);
+        }
+        
+        // Petals
+        const petals = [];
+        const petalGeometry = new THREE.CircleGeometry(0.5, 32);
+        
+        for (let i = 0; i < 40; i++) {
+            const petalMaterial = new THREE.MeshBasicMaterial({
+                color: i % 2 === 0 ? 0xa8575a : 0xc9a86c,
+                transparent: true,
+                opacity: 0.4,
+                side: THREE.DoubleSide
+            });
+            
+            const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+            petal.position.set((Math.random() - 0.5) * 120, (Math.random() - 0.5) * 120, (Math.random() - 0.5) * 40 - 20);
+            petal.userData = {
+                fallSpeed: 0.02 + Math.random() * 0.03,
+                swaySpeed: 0.5 + Math.random() * 0.5,
+                swayAmount: 0.5 + Math.random() * 0.5
+            };
+            scene.add(petal);
+            petals.push(petal);
+        }
+        
+        // Particles
+        const particleCount = 200;
+        const particleGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        
+        for (let i = 0; i < particleCount * 3; i += 3) {
+            positions[i] = (Math.random() - 0.5) * 150;
+            positions[i + 1] = (Math.random() - 0.5) * 150;
+            positions[i + 2] = (Math.random() - 0.5) * 100 - 30;
+        }
+        
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particleMaterial = new THREE.PointsMaterial({ color: 0xc9a86c, size: 0.3, transparent: true, opacity: 0.6 });
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particles);
+        
+        // Animation
+        let time = 0;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (!prefersReducedMotion) {
+                time += 0.01;
+                
+                hearts.forEach(heart => {
+                    heart.rotation.x += heart.userData.rotationSpeed.x;
+                    heart.rotation.y += heart.userData.rotationSpeed.y;
+                    heart.rotation.z += heart.userData.rotationSpeed.z;
+                    heart.position.y += Math.sin(time * heart.userData.floatSpeed + heart.userData.floatOffset) * 0.02;
+                });
+                
+                petals.forEach(petal => {
+                    petal.position.y -= petal.userData.fallSpeed;
+                    petal.position.x += Math.sin(time * petal.userData.swaySpeed) * petal.userData.swayAmount * 0.02;
+                    petal.rotation.z += 0.01;
+                    if (petal.position.y < -60) { petal.position.y = 60; petal.position.x = (Math.random() - 0.5) * 120; }
+                });
+                
+                particles.rotation.y += 0.0002;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // ========== AUDIO PLAYER ==========
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioUpload = document.getElementById('audioUpload');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const progressBar = document.getElementById('progressBar');
+        const volumeBar = document.getElementById('volumeBar');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const loopBtn = document.getElementById('loopBtn');
+        const loopText = document.getElementById('loopText');
+        const songName = document.getElementById('songName');
+        
+        let isLooping = false;
+        audioPlayer.volume = 0.8;
+        
+        audioUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                audioPlayer.src = url;
+                songName.textContent = `Now Playing: ${file.name}`;
+                audioPlayer.play();
+                updatePlayButton(true);
+            }
+        });
+        
+        playBtn.addEventListener('click', () => {
+            if (audioPlayer.src) {
+                if (audioPlayer.paused) { audioPlayer.play(); updatePlayButton(true); }
+                else { audioPlayer.pause(); updatePlayButton(false); }
+            }
+        });
+        
+        function updatePlayButton(isPlaying) {
+            playIcon.classList.toggle('hidden', isPlaying);
+            pauseIcon.classList.toggle('hidden', !isPlaying);
+        }
+        
+        audioPlayer.addEventListener('timeupdate', () => {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            progressBar.value = progress || 0;
+            currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+        });
+        
+        audioPlayer.addEventListener('loadedmetadata', () => { durationEl.textContent = formatTime(audioPlayer.duration); });
+        
+        progressBar.addEventListener('input', () => {
+            const time = (progressBar.value / 100) * audioPlayer.duration;
+            audioPlayer.currentTime = time;
+        });
+        
+        volumeBar.addEventListener('input', () => { audioPlayer.volume = volumeBar.value / 100; });
+        
+        loopBtn.addEventListener('click', () => {
+            isLooping = !isLooping;
+            audioPlayer.loop = isLooping;
+            loopText.textContent = isLooping ? 'Loop: On' : 'Loop: Off';
+            loopBtn.style.background = isLooping ? 'var(--accent)' : 'transparent';
+            loopBtn.style.color = isLooping ? 'var(--bg-deep)' : 'var(--fg-muted)';
+        });
+        
+        audioPlayer.addEventListener('ended', () => { if (!isLooping) updatePlayButton(false); });
+        
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // ========== TRANSLATION FUNCTION ==========
+        window.translateContent = function(lang) {
+            currentLang = lang;
+            
+            // Update active button
+            document.querySelectorAll('.translate-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const trans = translations[lang];
+            if (!trans) return;
+            
+            // Fade out
+            document.querySelectorAll('.fade-transition').forEach(el => { el.style.opacity = '0'; });
+            
+            setTimeout(() => {
+                // Update main content
+                document.getElementById('mainTitle').innerHTML = trans.mainTitle;
+                document.getElementById('mainSubtitle').innerHTML = trans.mainSubtitle;
+                
+                // Stanzas
+                for (let i = 1; i <= 10; i++) { document.getElementById(`stanza${i}`).innerHTML = trans[`stanza${i}`]; }
+                
+                // Pantuns
+                for (let i = 1; i <= 8; i++) {
+                    document.getElementById(`pantun${i}`).innerHTML = trans[`pantun${i}`];
+                    document.getElementById(`pantunTitle${i}`).innerHTML = trans[`pantunTitle${i}`];
+                }
+                
+                // Dividers & Closing
+                document.getElementById('dividerPantun').innerHTML = trans.dividerPantun;
+                document.getElementById('dividerJanji').innerHTML = trans.dividerJanji;
+                document.getElementById('dividerKasih').innerHTML = trans.dividerKasih;
+                document.getElementById('closing1').innerHTML = trans.closing1;
+                document.getElementById('closing2').innerHTML = trans.closing2;
+                document.getElementById('selectOccasion').innerHTML = trans.selectOccasion;
+                
+                // Update DateTime immediately
+                updateDateTime();
+                
+                // Fade in
+                document.querySelectorAll('.fade-transition').forEach(el => { el.style.opacity = '1'; });
+            }, 300);
+        };
+        
+        // ========== OCCASION CHANGE ==========
+        window.changeOccasion = function(occasion) {
+            const trans = translations[currentLang];
+            const occasionText = document.getElementById('occasionText');
+            
+            document.querySelectorAll('.occasion-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--fg)';
+            });
+            event.target.classList.add('active');
+            event.target.style.background = 'var(--accent)';
+            event.target.style.color = 'var(--bg-deep)';
+            
+            occasionText.style.opacity = '0';
+            setTimeout(() => {
+                occasionText.textContent = trans[`occasion${occasion.charAt(0).toUpperCase() + occasion.slice(1)}`];
+                occasionText.style.opacity = '1';
+            }, 200);
+        };
+        
+        // ========== SCROLL ANIMATIONS ==========
+        const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.style.animationPlayState = 'running';
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.poetry-line').forEach(el => {
+            el.style.animationPlayState = 'paused';
+            observer.observe(el);
+        });
+        
+        setTimeout(() => {
+            document.querySelectorAll('.poetry-line').forEach(el => { el.style.animationPlayState = 'running'; });
+        }, 500);
+        
+    </script>
+</body>
+</html>
